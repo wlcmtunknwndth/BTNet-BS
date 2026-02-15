@@ -1,0 +1,45 @@
+name: btnn-bs
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.13.8
+  - jupyter
+  - jupyterlab
+  - ipywidgets
+  - jupyter-resource-usage
+
+  - jupyterlab-git
+  - nbdime
+  - jupyterlab-lsp
+  - python-lsp-server
+  - jupyterlab_execute_time
+
+  - black
+  - isort
+
+  - pip
+  - pip:
+      - jupyterlab-code-formatter
+      - tqdm
+      - pyyaml
+
+      - scipy
+
+      - pyplot
+
+      - psycopg2
+
+      - polars
+
+      - prometheus_client
+      - prometheus_api_client
+
+      - boto3
+      - s3fs
+      
+      - numpy
+
+      - tensorflow
+
+      - torch
