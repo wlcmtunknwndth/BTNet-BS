@@ -18,6 +18,8 @@ dependencies:
   - black
   - isort
 
+  - quantlib
+
   - pip
   - pip:
       - jupyterlab-code-formatter
@@ -26,7 +28,7 @@ dependencies:
 
       - scipy
 
-      - pyplot
+      - matplotlib
 
       - psycopg2
 
