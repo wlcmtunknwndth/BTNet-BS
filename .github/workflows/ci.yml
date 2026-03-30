@@ -1,0 +1,41 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Setup Miniconda
+      uses: conda-incubator/setup-miniconda@v3
+      with:
+        environment-file: environment.yml
+        activate-environment: btnn-bs
+        auto-activate-base: false
+        miniforge-version: latest
+    
+    - name: Verify environment
+      shell: bash -el {0}
+      run: |
+        python -c "import torch; print(f'PyTorch version: {torch.__version__}')"
+        python -c "import numpy; print(f'NumPy version: {numpy.__version__}')"
+    
+    - name: Execute Jupyter notebook
+      shell: bash -el {0}
+      run: |
+        jupyter nbconvert --to notebook --execute btnn-bs-torch.ipynb --output executed_notebook.ipynb --ExecutePreprocessor.timeout=600
+    
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: notebook-output
+        path: executed_notebook.ipynb
+        retention-days: 7
