@@ -45,3 +45,5 @@ dependencies:
       - tensorflow
 
       - torch
+      - torchinfo
+      - onnxscript
