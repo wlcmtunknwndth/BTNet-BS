@@ -17,20 +17,27 @@ jobs:
     - name: Setup Miniconda
       uses: conda-incubator/setup-miniconda@v3
       with:
-        environment-file: environment.yml
-        activate-environment: btnn-bs
         auto-activate-base: false
         miniforge-version: latest
+    
+    - name: Create conda environment
+      shell: bash -el {0}
+      run: |
+        conda create -n btnn-bs python=3.10 -y
+        conda activate btnn-bs
+        pip install torch numpy scipy matplotlib tqdm torchinfo nbconvert jupyter
     
     - name: Verify environment
       shell: bash -el {0}
       run: |
+        conda activate btnn-bs
         python -c "import torch; print(f'PyTorch version: {torch.__version__}')"
         python -c "import numpy; print(f'NumPy version: {numpy.__version__}')"
     
     - name: Execute Jupyter notebook
       shell: bash -el {0}
       run: |
+        conda activate btnn-bs
         jupyter nbconvert --to notebook --execute btnn-bs-torch.ipynb --output executed_notebook.ipynb --ExecutePreprocessor.timeout=600
     
     - name: Upload artifacts
