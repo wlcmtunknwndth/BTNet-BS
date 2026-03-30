@@ -38,9 +38,12 @@
 
 ```
 btnn-bs/
-├── btnn-bs-torch.ipynb    # Основной ноутбук с реализацией
-├── README.md              # Документация
-└── requirements.txt       # Зависимости
+├── btnn-bs-torch.ipynb       # Основной ноутбук с реализацией
+├── model_european.onnx       # Экспорт архитектуры BTNetEuropean
+├── model_american.onnx       # Экспорт архитектуры BTNetAmerican
+├── environment.yml           # Conda-окружение
+├── .github/workflows/ci.yml  # CI/CD конфигурация
+└── README.md                 # Документация
 ```
 
 ## Классы и функции
@@ -148,15 +151,36 @@ predictions = model_american.predict(K_test)
 - `plot_errors()` — анализ ошибок предсказания
 - `plot_training_losses()` — кривые обучения
 
+## Визуализация архитектуры
+
+Для просмотра архитектуры нейросетей:
+
+1. Откройте https://netron.app/
+2. Загрузите файл `model_european.onnx` или `model_american.onnx`
+3. Сохраните скриншот архитектуры
+
+Скриншоты архитектур уже доступны в репозитории:
+- `model_european.onnx.png` — BTNetEuropean
+- `model_american.onnx.png` — BTNetAmerican
+
+## CI/CD
+
+Проект использует GitHub Actions для автоматической проверки:
+
+- Установка conda-окружения
+- Проверка импортов
+- Выполнение `model_info.py`
+- Запуск Jupyter notebook
+
 ## Зависимости
 
-```
-numpy>=1.20.0
-torch>=1.9.0
-scipy>=1.7.0
-matplotlib>=3.4.0
-tqdm>=4.60.0
-```
+Все зависимости указаны в `environment.yml`. Основные компоненты:
+
+- **PyTorch** — фреймворк глубокого обучения
+- **torchinfo** — информация об архитектуре моделей
+- **NumPy, SciPy** — численные вычисления
+- **Matplotlib** — визуализация
+- **QuantLib** — финансовые вычисления (для верификации)
 
 ## Математическая основа
 
