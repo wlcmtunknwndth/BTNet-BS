@@ -13,7 +13,7 @@ import numpy as np
 
 try:
     import QuantLib as ql
-except ImportError as exc:  # pragma: no cover - optional in dev envs without wheels
+except Exception as exc:  # pragma: no cover - ImportError, OSError (bad wheel/arch), etc.
     ql = None  # type: ignore[assignment]
     _QL_IMPORT_ERROR = exc
 else:
@@ -81,7 +81,7 @@ def price_european_put_ql(
     process = build_bsm_process(S0, r, sigma, ref_date, q)
     payoff = ql.PlainVanillaPayoff(ql.Option.Put, float(K))
     exercise = ql.EuropeanExercise(maturity)
-    option = ql.VanillaOption(exercise, payoff)
+    option = ql.VanillaOption(payoff, exercise)
     option.setPricingEngine(ql.AnalyticEuropeanEngine(process))
     return float(option.NPV())
 
@@ -105,7 +105,7 @@ def price_american_put_binomial_ql(
     process = build_bsm_process(S0, r, sigma, ref_date, q)
     payoff = ql.PlainVanillaPayoff(ql.Option.Put, float(K))
     exercise = ql.AmericanExercise(ref_date, maturity)
-    option = ql.VanillaOption(exercise, payoff)
+    option = ql.VanillaOption(payoff, exercise)
     option.setPricingEngine(ql.BinomialVanillaEngine(process, "crr", int(steps)))
     return float(option.NPV())
 
@@ -128,7 +128,7 @@ def price_american_put_baw_ql(
     process = build_bsm_process(S0, r, sigma, ref_date, q)
     payoff = ql.PlainVanillaPayoff(ql.Option.Put, float(K))
     exercise = ql.AmericanExercise(ref_date, maturity)
-    option = ql.VanillaOption(exercise, payoff)
+    option = ql.VanillaOption(payoff, exercise)
     if not hasattr(ql, "BaroneAdesiWhaleApproximationEngine"):
         raise AttributeError(
             "BaroneAdesiWhaleApproximationEngine not found in this QuantLib build"
@@ -300,3 +300,20 @@ def print_comparison_table(
                 f"  {name:22s}  MAE={stats['mae']:.2e}  RMSE={stats['rmse']:.2e}  max|.|={stats['max_abs']:.2e}"
             )
     print("\n".join(lines))
+
+
+__all__ = [
+    "require_quantlib",
+    "maturity_date",
+    "build_bsm_process",
+    "price_european_put_ql",
+    "price_american_put_binomial_ql",
+    "price_american_put_baw_ql",
+    "european_put_grid",
+    "american_put_grid_crr",
+    "american_put_grid_baw",
+    "error_stats",
+    "QuantLibBenchmarkResult",
+    "run_quantlib_benchmark",
+    "print_comparison_table",
+]

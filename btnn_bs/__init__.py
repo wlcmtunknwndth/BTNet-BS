@@ -1,17 +1,29 @@
 """BTNet-style networks and helpers for binomial-tree option pricing (Black–Scholes setting)."""
 
+import importlib
+
 from btnn_bs.analytics import american_put_prices_binomial, bs_put_price
 from btnn_bs.layers import ConvLayer, DenseLayer, MaxoutLayer
 from btnn_bs.model_american import BTNetAmerican
 from btnn_bs.model_european import BTNetEuropean
-from btnn_bs.plotting import (
-    plot_comparison,
-    plot_errors,
-    plot_errors_vs_quantlib,
-    plot_prices_with_quantlib,
-    plot_training_losses,
-)
-from btnn_bs.quantlib_ref import (
+
+# Import as submodule then bind names so we can reload if the kernel cached an old plotting.py
+# (missing QuantLib plot helpers) before the file was updated.
+_plotting = importlib.import_module("btnn_bs.plotting")
+if not hasattr(_plotting, "plot_prices_with_quantlib"):
+    _plotting = importlib.reload(_plotting)
+for _n in ("plot_prices_with_quantlib", "plot_errors_vs_quantlib"):
+    if not hasattr(_plotting, _n):
+        raise ImportError(
+            f"btnn_bs.plotting is missing {_n}; restart the Jupyter kernel or reinstall editable btnn-bs."
+        )
+
+plot_comparison = _plotting.plot_comparison
+plot_errors = _plotting.plot_errors
+plot_training_losses = _plotting.plot_training_losses
+plot_prices_with_quantlib = _plotting.plot_prices_with_quantlib
+plot_errors_vs_quantlib = _plotting.plot_errors_vs_quantlib
+from btnn_bs.quantlib import (
     QuantLibBenchmarkResult,
     american_put_grid_baw,
     american_put_grid_crr,

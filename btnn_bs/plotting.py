@@ -96,7 +96,6 @@ def plot_prices_with_quantlib(
     ql_prices,
     title="Option prices vs QuantLib",
 ):
-    """Price curves: BS, BTNet, CRR (or other tree), QuantLib reference."""
     plt.figure(figsize=(10, 6))
 
     K = np.array(K).flatten()
@@ -127,7 +126,6 @@ def plot_errors_vs_quantlib(
     crr_prices=None,
     title="Errors vs QuantLib",
 ):
-    """Stacked panels: (series − ql_ref) for each provided series."""
     K = np.array(K).flatten()
     ql_ref = np.array(ql_ref).flatten()
 
