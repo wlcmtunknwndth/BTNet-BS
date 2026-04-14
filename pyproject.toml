@@ -15,6 +15,9 @@ dependencies = [
     "tqdm",
 ]
 
+[project.optional-dependencies]
+quantlib = ["QuantLib-Python"]
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["btnn_bs*"]

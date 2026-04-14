@@ -86,3 +86,73 @@ def plot_training_losses(loss_hist_euro, loss_hist_amer, title="Training Losses"
     plt.suptitle(title)
     plt.tight_layout()
     plt.show()
+
+
+def plot_prices_with_quantlib(
+    K,
+    bs_prices,
+    nn_prices,
+    crr_prices,
+    ql_prices,
+    title="Option prices vs QuantLib",
+):
+    """Price curves: BS, BTNet, CRR (or other tree), QuantLib reference."""
+    plt.figure(figsize=(10, 6))
+
+    K = np.array(K).flatten()
+    bs_prices = np.array(bs_prices).flatten()
+    nn_prices = np.array(nn_prices).flatten()
+    crr_prices = np.array(crr_prices).flatten()
+    ql_prices = np.array(ql_prices).flatten()
+
+    plt.plot(K, bs_prices, "b--", label="Black–Scholes")
+    plt.plot(K, nn_prices, "r-", label="BTNet")
+    plt.plot(K, crr_prices, "g--", label="CRR / IBT")
+    plt.plot(K, ql_prices, "k.", markersize=4, label="QuantLib")
+
+    plt.xlabel("Strike K")
+    plt.ylabel("Put price")
+    plt.legend()
+    plt.title(title)
+    plt.grid(True, alpha=0.3)
+    plt.show()
+
+
+def plot_errors_vs_quantlib(
+    K,
+    ql_ref,
+    *,
+    nn_prices=None,
+    bs_prices=None,
+    crr_prices=None,
+    title="Errors vs QuantLib",
+):
+    """Stacked panels: (series − ql_ref) for each provided series."""
+    K = np.array(K).flatten()
+    ql_ref = np.array(ql_ref).flatten()
+
+    panels = []
+    if nn_prices is not None:
+        panels.append(("NN − QL", np.array(nn_prices).flatten()))
+    if bs_prices is not None:
+        panels.append(("BS − QL", np.array(bs_prices).flatten()))
+    if crr_prices is not None:
+        panels.append(("CRR − QL", np.array(crr_prices).flatten()))
+
+    if not panels:
+        return
+
+    n = len(panels)
+    plt.figure(figsize=(10, 3.2 * n))
+    for i, (name, y) in enumerate(panels):
+        plt.subplot(n, 1, i + 1)
+        err = y - ql_ref
+        plt.plot(K, err, linewidth=2, label=name)
+        plt.axhline(0, color="k", linestyle="-", alpha=0.25)
+        plt.fill_between(K, 0, err, alpha=0.2)
+        plt.xlabel("Strike K")
+        plt.ylabel("Price diff")
+        plt.title(f"{title} — {name}")
+        plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.show()
