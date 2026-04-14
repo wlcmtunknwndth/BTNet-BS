@@ -1,48 +1,62 @@
-name: CI/CD
+name: CI
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [main]
   pull_request:
-    branches: [ main, master ]
+    branches: [main]
 
 jobs:
-  build-and-test:
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
-    
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-    
-    - name: Setup Miniconda
-      uses: conda-incubator/setup-miniconda@v3
-      with:
-        auto-activate-base: false
-        miniforge-version: latest
-    
-    - name: Create conda environment
-      shell: bash -el {0}
-      run: |
-        conda create -n btnn-bs python=3.10 -y
-        conda activate btnn-bs
-        pip install torch numpy scipy matplotlib tqdm torchinfo nbconvert jupyter
-    
-    - name: Verify environment
-      shell: bash -el {0}
-      run: |
-        conda activate btnn-bs
-        python -c "import torch; print(f'PyTorch version: {torch.__version__}')"
-        python -c "import numpy; print(f'NumPy version: {numpy.__version__}')"
-    
-    - name: Execute Jupyter notebook
-      shell: bash -el {0}
-      run: |
-        conda activate btnn-bs
-        jupyter nbconvert --to notebook --execute btnn-bs-torch.ipynb --output executed_notebook.ipynb --ExecutePreprocessor.timeout=600
-    
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: notebook-output
-        path: executed_notebook.ipynb
-        retention-days: 7
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install ruff
+      - run: ruff check btnn_bs/
+
+  check:
+    name: Import check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - name: Install (CPU torch + package)
+        run: |
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -e .
+      - name: Verify imports
+        run: |
+          python -c "import btnn_bs; print('btnn_bs OK')"
+          python -c "import torch; print(f'torch {torch.__version__}')"
+          python -c "import numpy as np; print(f'numpy {np.__version__}')"
+
+  notebook:
+    name: Execute notebook
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -e . nbconvert jupyter scipy matplotlib tqdm torchinfo
+      - name: Execute notebook
+        run: |
+          jupyter nbconvert --to notebook --execute btnn-bs-torch-v2.ipynb \
+            --output executed_notebook.ipynb \
+            --ExecutePreprocessor.timeout=600
+      - uses: actions/upload-artifact@v4
+        with:
+          name: notebook-output
+          path: executed_notebook.ipynb
+          retention-days: 7
