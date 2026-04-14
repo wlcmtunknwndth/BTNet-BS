@@ -1,55 +1,70 @@
-# BTNet — нейронные сети на основе биномиального дерева для оценки опционов
+# BTNet — Binomial-Tree Neural Networks for Option Pricing
+# BTNet — Нейронные сети на основе биномиального дерева для оценки опционов
 
-Реализация нейросетевых архитектур для оценки европейских и американских опционов пут, структура которых напрямую выведена из биномиальной модели Кокса–Росса–Рубинштейна (CRR). Проект реализует подход из статьи:
+Neural network architectures for pricing European and American put options, whose structure is derived analytically from the Cox–Ross–Rubinstein (CRR) binomial model.  
+Нейросетевые архитектуры для оценки европейских и американских опционов пут, структура которых аналитически выведена из биномиальной модели Кокса–Росса–Рубинштейна (CRR).
 
+Based on / На основе статьи:
 > Шорохов С.Г. Оценка финансовых деривативов нейронной сетью на основе биномиального дерева // International Journal of Open Information Technologies. – 2024. – Т. 12, № 5. – С. 108–114.
 
-## Ключевая идея
+---
 
-Вместо того чтобы обучать произвольную нейросеть на ценах опционов, архитектура строится аналитически: каждый шаг обратного хода биномиального дерева — это один слой сети с фиксированными весами. Это даёт интерпретируемость «из коробки»: веса имеют прямой финансовый смысл (риск-нейтральные вероятности, множители дисконтирования).
+## Key idea / Ключевая идея
 
-- **Европейский опцион** → обратный ход реализован как последовательность свёрточных слоёв с фильтром размера 2
-- **Американский опцион** → вместо свёртки — maxout-слои, реализующие `max(держать, исполнить)`
+Instead of training a generic network on option prices, the architecture is built analytically: each backward-induction step of the binomial tree becomes one network layer with financially meaningful fixed weights (risk-neutral probabilities, discount factors).  
+Вместо того чтобы обучать произвольную нейросеть на ценах опционов, архитектура строится аналитически: каждый шаг обратного хода биномиального дерева — это один слой с весами, имеющими прямой финансовый смысл (риск-нейтральные вероятности, множители дисконтирования).
 
-## Структура проекта
+- **European / Европейский** — backward induction as a stack of size-2 conv layers / обратный ход как последовательность свёрточных слоёв с фильтром размера 2
+- **American / Американский** — maxout layers implementing `max(hold, exercise)` / maxout-слои, реализующие `max(держать, исполнить)`
+
+---
+
+## Project structure / Структура проекта
 
 ```
 btnn-bs/
-├── btnn_bs/                    # Python-пакет
+├── btnn_bs/                    # Python package / Python-пакет
 │   ├── layers.py               # ConvLayer, DenseLayer, MaxoutLayer
 │   ├── model_european.py       # BTNetEuropean
 │   ├── model_american.py       # BTNetAmerican
-│   ├── tree.py                 # MyIBT_CRR — референсное биномиальное дерево
+│   ├── tree.py                 # MyIBT_CRR — reference binomial tree / референсное дерево
 │   ├── analytics.py            # bs_put_price, american_put_prices_binomial
 │   ├── training.py             # train_BTNet
-│   ├── plotting.py             # визуализация результатов
-│   └── quantlib/               # интеграция с QuantLib (опционально)
+│   ├── plotting.py             # result visualisation / визуализация результатов
+│   └── quantlib/               # QuantLib integration, optional / интеграция с QuantLib
 │       └── __init__.py
-├── btnn-bs-torch-v2.ipynb      # основной ноутбук
-├── BTNN_BS_Eur_v4.ipynb        # европейский опцион, ранняя версия
+├── btnn-bs-torch-v2.ipynb      # main notebook / основной ноутбук
+├── BTNN_BS_Eur_v4.ipynb        # European-only, earlier version / европейский, ранняя версия
 ├── pyproject.toml
 ├── environment.yml
 └── requirements.txt
 ```
 
-## Установка
+---
+
+## Installation / Установка
+
+Clone and install in editable mode:  
+Клонируйте репозиторий и установите пакет в режиме разработки:
 
 ```bash
 git clone https://github.com/username/btnn-bs.git
 cd btnn-bs
-
 pip install -e .
 ```
 
-Для работы с QuantLib (верификация цен):
+For QuantLib price verification (optional):  
+Для верификации цен через QuantLib (опционально):
 
 ```bash
 pip install -e ".[quantlib]"
 ```
 
-## Использование
+---
 
-### Европейский опцион пут
+## Usage / Использование
+
+### European put / Европейский опцион пут
 
 ```python
 import numpy as np
@@ -68,7 +83,7 @@ K_test = np.array([[0.4], [0.5], [0.6]])
 predictions = model.predict(K_test)
 ```
 
-### Американский опцион пут
+### American put / Американский опцион пут
 
 ```python
 from btnn_bs import BTNetAmerican, american_put_prices_binomial, train_BTNet
@@ -84,7 +99,7 @@ train_BTNet(model, K_train, prices_train, epochs=200)
 predictions = model.predict(K_test)
 ```
 
-### Верификация через QuantLib
+### QuantLib verification / Верификация через QuantLib
 
 ```python
 from btnn_bs import run_quantlib_benchmark, error_stats, print_comparison_table
@@ -102,54 +117,97 @@ print_comparison_table(
 )
 ```
 
-## Экспериментальные результаты
+---
 
+## Experimental results / Экспериментальные результаты
+
+Standard parameter set for reproducibility:  
 Стандартный набор параметров для воспроизведения результатов:
 
-| Параметр | Значение |
-|----------|----------|
+| Parameter / Параметр | Value / Значение |
+|---|---|
 | S₀ | 0.5 |
 | T | 1.0 |
 | r | 0.05 |
 | σ | 0.25 |
-| n (шагов дерева) | 9 |
-| Диапазон страйков K | [0.25, 0.75] |
-| Размер обучающей выборки | 500 |
-| Эпох обучения | 200 |
+| n (tree depth / глубина дерева) | 9 |
+| Strike range / Диапазон страйков K | [0.25, 0.75] |
+| Training set size / Размер обучающей выборки | 500 |
+| Epochs / Эпох обучения | 200 |
 
-**Европейский пут** — loss после обучения ~10⁻⁶, ошибка относительно формулы Блэка–Шоулза на уровне численного шума.
+**European / Европейский** — training loss ~10⁻⁶, error vs Black–Scholes at the level of numerical noise.  
+**European / Европейский** — loss после обучения ~10⁻⁶, ошибка относительно формулы Блэка–Шоулза на уровне численного шума.
 
-**Американский пут** — loss ~10⁻⁵, MAE относительно QuantLib CRR (~500 шагов) порядка 10⁻³–10⁻⁴ в зависимости от глубины дерева сети.
+**American / Американский** — training loss ~10⁻⁵, MAE vs QuantLib CRR (500 steps) in the range 10⁻³–10⁻⁴ depending on tree depth.  
+**American / Американский** — loss ~10⁻⁵, MAE относительно QuantLib CRR (~500 шагов) порядка 10⁻³–10⁻⁴ в зависимости от глубины дерева.
 
-## Архитектуры слоёв
+---
 
-| Класс | Описание |
-|-------|----------|
-| `DenseLayer` | Полносвязный слой с настраиваемой активацией и возможностью инициализации весов |
-| `ConvLayer` | 1D-свёртка с фильтром размера 2 (один шаг дисконтирования) |
-| `MaxoutLayer` | Свёртка + линейный слой с поэлементным `max` (один шаг American backward induction) |
+## Layer reference / Описание слоёв
+
+| Class / Класс | Description / Описание |
+|---|---|
+| `DenseLayer` | Linear layer with configurable activation and weight initialisation / Линейный слой с настраиваемой активацией и инициализацией весов |
+| `ConvLayer` | 1D convolution with kernel size 2 — one discounting step / 1D-свёртка с фильтром 2 — один шаг дисконтирования |
+| `MaxoutLayer` | Convolution + linear branch with element-wise `max` — one American backward-induction step / Свёртка + линейная ветка с поэлементным `max` — один шаг American backward induction |
+
+---
 
 ## CI
 
+Three parallel jobs on GitHub Actions:  
 Три параллельных задания на GitHub Actions:
 
-- **lint** — `ruff check btnn_bs/`
-- **check** — установка пакета, проверка импортов (CPU torch)
-- **notebook** — выполнение `btnn-bs-torch-v2.ipynb`, артефакт сохраняется 7 дней
+| Job | What it does / Что делает |
+|---|---|
+| **lint** | `ruff check btnn_bs/` |
+| **check** | Installs package, verifies imports (CPU torch) / Устанавливает пакет, проверяет импорты |
+| **notebook** | Executes `btnn-bs-torch-v2.ipynb`, keeps artifact 7 days / Выполняет ноутбук, артефакт хранится 7 дней |
 
-## Зависимости
+---
 
-- **PyTorch** — основной фреймворк
-- **NumPy, SciPy** — численные вычисления
-- **Matplotlib** — визуализация
-- **QuantLib** — верификация цен (опционально)
+## Dependencies / Зависимости
 
-## Автор
+- **PyTorch** — deep learning framework / основной фреймворк
+- **NumPy, SciPy** — numerical computation / численные вычисления
+- **Matplotlib** — visualisation / визуализация
+- **QuantLib** — price verification, optional / верификация цен, опционально
+
+---
+
+## Mathematical basis / Математическая основа
+
+CRR price move factors:  
+Множители движения цены CRR:
+```
+u = exp(σ√Δt)
+d = exp(−σ√Δt)
+```
+
+Risk-neutral probabilities / Риск-нейтральные вероятности:
+```
+πᵤ = (exp(rΔt) − d) / (u − d)
+π_d = 1 − πᵤ
+```
+
+European backward step / Обратный ход для европейского опциона:
+```
+V(i,j) = exp(−rΔt) · [πᵤ · V(i+1,j+1) + π_d · V(i+1,j)]
+```
+
+American backward step / Обратный ход для американского опциона:
+```
+V(i,j) = max{ exp(−rΔt) · [πᵤ · V(i+1,j+1) + π_d · V(i+1,j)],  K − S(i,j) }
+```
+
+---
+
+## Author / Автор
 
 Петров Артем Евгеньевич, НКНбд-01-22  
-**Научный руководитель**: к.ф.н., доцент Шорохов С.Г.  
+**Научный руководитель / Supervisor**: к.ф.н., доцент Шорохов С.Г.  
 Российский университет дружбы народов имени Патриса Лумумбы
 
-## Лицензия
+## License / Лицензия
 
 MIT
