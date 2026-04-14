@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "btnn-bs"
+version = "0.1.0"
+description = "Binomial-tree shaped networks (BTNet) for option pricing"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy",
+    "torch",
+    "matplotlib",
+    "scipy",
+    "tqdm",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["btnn_bs*"]
