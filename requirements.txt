@@ -1,7 +1,6 @@
 # Target Python: 3.13.8 (see environment.yml)
 QuantLib-Python
 black
-boto3
 ipywidgets
 isort
 jupyter
@@ -18,12 +17,12 @@ onnxscript
 polars
 prometheus_api_client
 prometheus_client
-psycopg2
 python-lsp-server
 pyyaml
-s3fs
 scipy
-tensorflow
 torch
 torchinfo
 tqdm
+
+# Optional
+tensorflow
