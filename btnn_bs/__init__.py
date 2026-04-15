@@ -34,6 +34,17 @@ from btnn_bs.quantlib import (
 )
 from btnn_bs.training import train_BTNet
 from btnn_bs.tree import MyIBT_CRR
+from btnn_bs.greeks import (
+    btnet_greeks,
+    btnet_american_greeks,
+    american_greeks_fd,
+    bs_greeks,
+    greeks_error_table,
+    plot_greeks,
+    plot_greeks_errors,
+    plot_american_greeks,
+    plot_american_greeks_errors,
+)
 
 __all__ = [
     "MyIBT_CRR",
@@ -57,4 +68,15 @@ __all__ = [
     "american_put_grid_baw",
     "error_stats",
     "print_comparison_table",
+    # Greeks — European
+    "btnet_greeks",
+    "bs_greeks",
+    "greeks_error_table",
+    "plot_greeks",
+    "plot_greeks_errors",
+    # Greeks — American
+    "btnet_american_greeks",
+    "american_greeks_fd",
+    "plot_american_greeks",
+    "plot_american_greeks_errors",
 ]
