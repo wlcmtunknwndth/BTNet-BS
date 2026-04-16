@@ -16,16 +16,6 @@ from btnn_bs.model_european import BTNetEuropean
 
 
 class BTNetAmericanReLU(nn.Module):
-    """American option pricer built from a trained BTNetEuropean.
-
-    Architecture is identical to BTNetEuropean except that each hidden
-    ConvLayer step is followed by a ReLU activation.  The initial
-    (payoff) layer already uses ReLU so its activation is unchanged.
-
-    The model is created in eval mode and its parameters are frozen –
-    it is not meant to be retrained.
-    """
-
     def __init__(self, european_model: BTNetEuropean) -> None:
         super().__init__()
 
