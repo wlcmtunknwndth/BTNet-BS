@@ -5,6 +5,7 @@ import importlib
 from btnn_bs.analytics import american_put_prices_binomial, bs_put_price
 from btnn_bs.layers import ConvLayer, DenseLayer, MaxoutLayer
 from btnn_bs.model_american import BTNetAmerican
+from btnn_bs.model_american_relu import BTNetAmericanReLU
 from btnn_bs.model_european import BTNetEuropean
 
 # Import as submodule then bind names so we can reload if the kernel cached an old plotting.py
@@ -53,6 +54,7 @@ __all__ = [
     "MaxoutLayer",
     "BTNetEuropean",
     "BTNetAmerican",
+    "BTNetAmericanReLU",
     "train_BTNet",
     "bs_put_price",
     "american_put_prices_binomial",

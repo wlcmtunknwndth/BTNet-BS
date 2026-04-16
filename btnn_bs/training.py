@@ -9,7 +9,8 @@ from tqdm.auto import tqdm
 
 
 def train_BTNet(model, K_train, prices_train, epochs=200, lr=0.01, log_every: int = 50):
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    trainable = [p for p in model.parameters() if p.requires_grad]
+    optimizer = torch.optim.Adam(trainable, lr=lr)
     loss_fn = nn.MSELoss()
 
     if isinstance(K_train, np.ndarray):

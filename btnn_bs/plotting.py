@@ -64,10 +64,11 @@ def plot_errors(K, bs_prices, nn_prices, crr_prices, title="Prediction Errors"):
     plt.show()
 
 
-def plot_training_losses(loss_hist_euro, loss_hist_amer, title="Training Losses"):
-    plt.figure(figsize=(12, 5))
+def plot_training_losses(loss_hist_euro, loss_hist_amer=None, title="Training Losses"):
+    n_plots = 1 if loss_hist_amer is None else 2
+    plt.figure(figsize=(6 * n_plots, 5))
 
-    plt.subplot(1, 2, 1)
+    plt.subplot(1, n_plots, 1)
     plt.plot(loss_hist_euro, "b-", linewidth=1)
     plt.xlabel("Epoch")
     plt.ylabel("MSE Loss")
@@ -75,13 +76,14 @@ def plot_training_losses(loss_hist_euro, loss_hist_amer, title="Training Losses"
     plt.grid(True, alpha=0.3)
     plt.yscale("log")
 
-    plt.subplot(1, 2, 2)
-    plt.plot(loss_hist_amer, "r-", linewidth=1)
-    plt.xlabel("Epoch")
-    plt.ylabel("MSE Loss")
-    plt.title("American Model Training Loss")
-    plt.grid(True, alpha=0.3)
-    plt.yscale("log")
+    if loss_hist_amer is not None:
+        plt.subplot(1, 2, 2)
+        plt.plot(loss_hist_amer, "r-", linewidth=1)
+        plt.xlabel("Epoch")
+        plt.ylabel("MSE Loss")
+        plt.title("American Model Training Loss")
+        plt.grid(True, alpha=0.3)
+        plt.yscale("log")
 
     plt.suptitle(title)
     plt.tight_layout()
