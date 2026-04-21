@@ -456,3 +456,182 @@ def plot_american_greeks_errors(
 
     plt.tight_layout()
     plt.show()
+
+
+# ---------------------------------------------------------------------------
+# 6.  Weight-transfer experiment Greeks
+# ---------------------------------------------------------------------------
+
+def _crr_american_put_fixed_W(
+    K: torch.Tensor,
+    S0: torch.Tensor,
+    sigma: torch.Tensor,
+    T: torch.Tensor,
+    W0_fixed: torch.Tensor,
+    W1_fixed: torch.Tensor,
+    n: int = 9,
+) -> torch.Tensor:
+    """CRR American put with externally specified (frozen) W0, W1.
+
+    Unlike ``_crr_american_put``, the discounting weights are *not* derived
+    from sigma/r/T — they are passed in directly.  This lets autograd
+    differentiate w.r.t. S0, sigma, T while keeping W frozen, matching the
+    behaviour of a transferred-weight model whose conv filter was fixed during
+    the European-training step.
+
+    Gradients flow only through the stock-price geometry
+    (terminal payoffs and intrinsic values), not through W.
+    """
+    dt = T / n
+    sqrt_dt = torch.sqrt(dt)
+
+    # Terminal payoffs
+    j = torch.arange(n + 1, dtype=torch.float32)
+    S_T = S0 * torch.exp(sigma * sqrt_dt * (2.0 * j - n))
+    V = torch.relu(K - S_T)
+
+    # Backward induction — W is constant (no gradient flows through it)
+    for i in range(n):
+        time_idx = n - 1 - i
+        V_cont = W0_fixed * V[:-1] + W1_fixed * V[1:]
+        j_curr = torch.arange(n - i, dtype=torch.float32)
+        S_curr = S0 * torch.exp(sigma * sqrt_dt * (2.0 * j_curr - time_idx))
+        V_intr = torch.relu(K - S_curr)
+        V = torch.max(V_cont, V_intr)
+
+    return V.squeeze()
+
+
+def btnet_american_greeks_fixed_W(
+    K_values: np.ndarray,
+    S0: float,
+    sigma: float,
+    T: float,
+    W0_val: float,
+    W1_val: float,
+    n: int = 9,
+) -> dict[str, np.ndarray]:
+    """Greeks for an American put model whose conv filter W is externally fixed.
+
+    Used in the weight-transfer experiment (v4 notebook): W comes from a
+    trained European model rather than from the analytical CRR formula.
+    Because W is frozen, Vega and Theta only reflect the sensitivity of the
+    stock-price tree — they do *not* include the indirect channel through the
+    risk-neutral probabilities (which is present in the fully-analytical model).
+
+    Args:
+        W0_val, W1_val: The two elements of the conv filter [W0, W1].
+                        Extract from the model with:
+                        ``model._maxout_layers[0]._conv_1d.weight.data.squeeze().tolist()``
+    """
+    W0_t = torch.tensor(W0_val, dtype=torch.float32)   # no requires_grad -> frozen
+    W1_t = torch.tensor(W1_val, dtype=torch.float32)
+
+    K_flat = K_values.flatten()
+    deltas, gammas, vegas, thetas = [], [], [], []
+
+    for K_val in K_flat:
+        K = _scalar(K_val)
+
+        # ---- Delta & Gamma (w.r.t. S0) ----
+        S0_t = torch.tensor(S0, dtype=torch.float32, requires_grad=True)
+        V = _crr_american_put_fixed_W(K, S0_t, _scalar(sigma), _scalar(T), W0_t, W1_t, n)
+        (delta,) = torch.autograd.grad(V, S0_t, create_graph=True)
+        deltas.append(delta.item())
+        (gamma,) = torch.autograd.grad(delta, S0_t)
+        gammas.append(gamma.item())
+
+        # ---- Vega (w.r.t. sigma) ----
+        sigma_t = torch.tensor(sigma, dtype=torch.float32, requires_grad=True)
+        V2 = _crr_american_put_fixed_W(K, _scalar(S0), sigma_t, _scalar(T), W0_t, W1_t, n)
+        (vega,) = torch.autograd.grad(V2, sigma_t)
+        vegas.append(vega.item())
+
+        # ---- Theta (dV/dt = -dV/dT) ----
+        T_t = torch.tensor(T, dtype=torch.float32, requires_grad=True)
+        V3 = _crr_american_put_fixed_W(K, _scalar(S0), _scalar(sigma), T_t, W0_t, W1_t, n)
+        (dV_dT,) = torch.autograd.grad(V3, T_t)
+        thetas.append(-dV_dT.item())
+
+    return {
+        "delta": np.array(deltas),
+        "gamma": np.array(gammas),
+        "vega":  np.array(vegas),
+        "theta": np.array(thetas),
+    }
+
+
+def plot_american_greeks_transfer(
+    K_values: np.ndarray,
+    greeks_analytical: dict[str, np.ndarray],
+    greeks_transfer: dict[str, np.ndarray],
+    european_bs: dict[str, np.ndarray],
+    S0: float,
+    W_analytical: list,
+    W_transfer: list,
+) -> None:
+    """4-panel plot comparing Greeks of analytical vs transferred-W American model.
+
+    Three curves per panel:
+        - Black-Scholes European (dotted, reference)
+        - Analytical W American (solid blue)
+        - Transferred W American (dashed orange)
+    """
+    K = K_values.flatten()
+
+    fig, axes = plt.subplots(2, 2, figsize=(13, 9))
+    fig.suptitle(
+        f"American Put Greeks: Analytical W vs Transferred W\n"
+        f"Analytical W = {[round(w,4) for w in W_analytical]}  |  "
+        f"Transferred W = {[round(w,4) for w in W_transfer]}",
+        fontsize=12,
+    )
+
+    specs = [
+        ("delta", "Delta  (∂V/∂S)",   "upper right"),
+        ("gamma", "Gamma  (∂²V/∂S²)", "upper right"),
+        ("vega",  "Vega  (∂V/∂σ)",    "upper left"),
+        ("theta", "Theta  (∂V/∂t)",   "lower right"),
+    ]
+
+    for ax, (key, title, loc) in zip(axes.flat, specs):
+        ax.plot(K, european_bs[key],       "b:",  linewidth=1.5, label="BS European (reference)")
+        ax.plot(K, greeks_analytical[key], "b-",  linewidth=2.0, label="Analytical W (Theorem 2)")
+        ax.plot(K, greeks_transfer[key],   "r--", linewidth=1.8, label="Transferred W (Euro-trained)")
+        ax.axvline(S0, color="grey", linestyle=":", linewidth=1.0, label=f"ATM K=S\u2080={S0}")
+        ax.set_title(title, fontsize=11)
+        ax.set_xlabel("Strike K")
+        ax.legend(loc=loc, fontsize=7.5)
+        ax.grid(True, alpha=0.3)
+
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_american_greeks_transfer_errors(
+    K_values: np.ndarray,
+    greeks_analytical: dict[str, np.ndarray],
+    greeks_transfer: dict[str, np.ndarray],
+) -> None:
+    """Absolute difference |analytical W - transferred W| per Greek."""
+    K = K_values.flatten()
+
+    fig, axes = plt.subplots(2, 2, figsize=(13, 9))
+    fig.suptitle(
+        "|Greeks(analytical W) - Greeks(transferred W)|  (American put)",
+        fontsize=13,
+    )
+
+    colors = {"delta": "steelblue", "gamma": "darkorange", "vega": "seagreen", "theta": "crimson"}
+
+    for ax, key in zip(axes.flat, ("delta", "gamma", "vega", "theta")):
+        err = np.abs(greeks_analytical[key] - greeks_transfer[key])
+        ax.plot(K, err, color=colors[key], linewidth=2.0)
+        ax.fill_between(K, 0, err, alpha=0.2, color=colors[key])
+        ax.set_title(f"{key.capitalize()}   MAE = {err.mean():.2e}", fontsize=11)
+        ax.set_xlabel("Strike K")
+        ax.set_ylabel("|analytical - transferred|")
+        ax.grid(True, alpha=0.3)
+
+    plt.tight_layout()
+    plt.show()

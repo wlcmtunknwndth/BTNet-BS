@@ -38,6 +38,7 @@ from btnn_bs.tree import MyIBT_CRR
 from btnn_bs.greeks import (
     btnet_greeks,
     btnet_american_greeks,
+    btnet_american_greeks_fixed_W,
     american_greeks_fd,
     bs_greeks,
     greeks_error_table,
@@ -45,6 +46,8 @@ from btnn_bs.greeks import (
     plot_greeks_errors,
     plot_american_greeks,
     plot_american_greeks_errors,
+    plot_american_greeks_transfer,
+    plot_american_greeks_transfer_errors,
 )
 
 __all__ = [
@@ -81,4 +84,8 @@ __all__ = [
     "american_greeks_fd",
     "plot_american_greeks",
     "plot_american_greeks_errors",
+    # Greeks — weight-transfer experiment
+    "btnet_american_greeks_fixed_W",
+    "plot_american_greeks_transfer",
+    "plot_american_greeks_transfer_errors",
 ]
