@@ -49,10 +49,10 @@ jobs:
       - name: Install dependencies
         run: |
           pip install torch --index-url https://download.pytorch.org/whl/cpu
-          pip install -e . nbconvert jupyter scipy matplotlib tqdm torchinfo
+          pip install -e ".[quantlib]" nbconvert jupyter scipy matplotlib tqdm torchinfo
       - name: Execute notebook
         run: |
-          jupyter nbconvert --to notebook --execute btnn-bs-torch-v2.ipynb \
+          jupyter nbconvert --to notebook --execute btnn-bs-torch-v4.ipynb \
             --output executed_notebook.ipynb \
             --ExecutePreprocessor.timeout=600
       - uses: actions/upload-artifact@v4
