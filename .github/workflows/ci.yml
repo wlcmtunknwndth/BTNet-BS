@@ -49,7 +49,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install torch --index-url https://download.pytorch.org/whl/cpu
-          pip install -e ".[quantlib]" nbconvert jupyter scipy matplotlib tqdm torchinfo
+          pip install -e ".[quantlib,onnx]" nbconvert jupyter scipy matplotlib tqdm torchinfo
       - name: Execute notebook
         run: |
           jupyter nbconvert --to notebook --execute btnn-bs-torch-v4.ipynb \

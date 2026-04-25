@@ -17,6 +17,7 @@ dependencies = [
 
 [project.optional-dependencies]
 quantlib = ["QuantLib-Python"]
+onnx = ["onnx", "onnxscript"]
 
 [tool.setuptools.packages.find]
 where = ["."]

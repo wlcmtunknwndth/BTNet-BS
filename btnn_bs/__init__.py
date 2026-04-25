@@ -3,10 +3,35 @@
 import importlib
 
 from btnn_bs.analytics import american_put_prices_binomial, bs_put_price
+from btnn_bs.greeks import (
+    american_greeks_fd,
+    btnet_american_greeks,
+    btnet_american_greeks_fixed_W,
+    btnet_greeks,
+    bs_greeks,
+    greeks_error_table,
+    plot_american_greeks,
+    plot_american_greeks_errors,
+    plot_american_greeks_transfer,
+    plot_american_greeks_transfer_errors,
+    plot_greeks,
+    plot_greeks_errors,
+)
 from btnn_bs.layers import ConvLayer, DenseLayer, MaxoutLayer
 from btnn_bs.model_american import BTNetAmerican
 from btnn_bs.model_american_relu import BTNetAmericanReLU
 from btnn_bs.model_european import BTNetEuropean
+from btnn_bs.quantlib import (
+    QuantLibBenchmarkResult,
+    american_put_grid_baw,
+    american_put_grid_crr,
+    error_stats,
+    european_put_grid,
+    print_comparison_table,
+    run_quantlib_benchmark,
+)
+from btnn_bs.training import train_BTNet
+from btnn_bs.tree import MyIBT_CRR
 
 # Import as submodule then bind names so we can reload if the kernel cached an old plotting.py
 # (missing QuantLib plot helpers) before the file was updated.
@@ -24,31 +49,6 @@ plot_errors = _plotting.plot_errors
 plot_training_losses = _plotting.plot_training_losses
 plot_prices_with_quantlib = _plotting.plot_prices_with_quantlib
 plot_errors_vs_quantlib = _plotting.plot_errors_vs_quantlib
-from btnn_bs.quantlib import (
-    QuantLibBenchmarkResult,
-    american_put_grid_baw,
-    american_put_grid_crr,
-    error_stats,
-    european_put_grid,
-    print_comparison_table,
-    run_quantlib_benchmark,
-)
-from btnn_bs.training import train_BTNet
-from btnn_bs.tree import MyIBT_CRR
-from btnn_bs.greeks import (
-    btnet_greeks,
-    btnet_american_greeks,
-    btnet_american_greeks_fixed_W,
-    american_greeks_fd,
-    bs_greeks,
-    greeks_error_table,
-    plot_greeks,
-    plot_greeks_errors,
-    plot_american_greeks,
-    plot_american_greeks_errors,
-    plot_american_greeks_transfer,
-    plot_american_greeks_transfer_errors,
-)
 
 __all__ = [
     "MyIBT_CRR",
