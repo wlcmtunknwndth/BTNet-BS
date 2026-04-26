@@ -1,15 +1,25 @@
-DIR  := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
-SRC  := $(DIR)Presentation.md
-PDF  := $(DIR)Presentation.pdf
-PPTX := $(DIR)Presentation.pptx
+DIR      := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
-.PHONY: pdf pptx clean
+PRES_SRC := $(DIR)Presentation.md
+PRES_PDF := $(DIR)Presentation.pdf
 
-pdf:
-	marp $(SRC) --pdf --allow-local-files -o $(PDF)
+RPT_SRC  := $(DIR)Report.md
+RPT_PDF  := $(DIR)Report.pdf
 
-pptx:
-	marp $(SRC) --pptx --allow-local-files -o $(PPTX)
+.PHONY: all pdf pptx report clean
+
+all: presentation report
+
+presentation:
+	marp $(PRES_SRC) --pdf --allow-local-files -o $(PRES_PDF)
+
+report:
+	pandoc $(RPT_SRC) -o $(RPT_PDF) \
+	  --pdf-engine=xelatex \
+	  -V mainfont="Times New Roman" \
+	  -V lang=ru \
+	  -V geometry:margin=2cm \
+	  -V fontsize=14pt
 
 clean:
-	rm -f $(PDF) $(PPTX)
+	rm -f $(PRES_PDF) $(RPT_PDF)
