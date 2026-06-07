@@ -3,72 +3,138 @@ marp: true
 theme: default
 paginate: true
 style: |
+  :root {
+    --ink: #1f2937;
+    --muted: #64748b;
+    --blue: #2f6f9f;
+    --blue-dark: #1e3a5f;
+    --blue-soft: #edf5fb;
+    --teal: #5d9b96;
+    --teal-soft: #eef7f6;
+    --line: #d7e2ec;
+    --paper: #ffffff;
+    --wash: #f7f9fc;
+  }
   section {
     font-family: "Arial", "Helvetica", sans-serif;
-    font-size: 22px;
-    color: #172033;
-    background: #f8fafc;
-    padding: 40px 54px;
+    font-size: 23px;
+    color: var(--ink);
+    background: var(--wash);
+    padding: 42px 58px 38px 58px;
+  }
+  section::before {
+    content: none !important;
+    display: none !important;
+  }
+  section::after {
+    color: #8a97a8;
+    font-size: 17px;
+    right: 24px;
+    bottom: 18px;
   }
   h1 {
-    font-size: 38px;
+    font-size: 39px;
     line-height: 1.12;
-    color: #0f172a;
-    margin-bottom: 20px;
+    color: var(--blue-dark);
+    margin-bottom: 22px;
   }
   h2 {
-    font-size: 30px;
-    color: #0f172a;
-    margin-bottom: 16px;
+    font-size: 32px;
+    line-height: 1.12;
+    color: var(--blue-dark);
+    margin: 0 0 22px;
   }
-  strong { color: #0f5f9c; }
-  ul, ol { font-size: 22px; line-height: 1.3; }
-  li { margin-bottom: 7px; }
+  h2::after {
+    content: "";
+    display: block;
+    width: 86px;
+    height: 4px;
+    margin-top: 10px;
+    background: linear-gradient(90deg, #6fa8cc, #9fc8c4);
+    border-radius: 4px;
+  }
+  strong { color: var(--blue); }
+  code {
+    background: #eef4fa;
+    color: #0b4f83;
+    border-radius: 4px;
+    padding: 0 4px;
+  }
+  ul, ol { font-size: 23px; line-height: 1.34; }
+  li { margin-bottom: 8px; }
   table {
     width: 100%;
-    font-size: 19px;
+    font-size: 20px;
     border-collapse: collapse;
+    background: var(--paper);
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.07);
   }
   th {
-    background: #e8f1f8;
-    color: #0f172a;
+    background: var(--blue-soft);
+    color: var(--blue-dark);
     font-weight: 700;
   }
   th, td {
-    border: 1px solid #c7d4e2;
-    padding: 7px 9px;
+    border: 1px solid var(--line);
+    padding: 8px 10px;
   }
   img {
-    max-height: 325px;
+    max-height: 330px;
     display: block;
     margin: 0 auto;
+    background: #ffffff;
+    border: 1px solid #d7e1ec;
+    border-radius: 6px;
+    padding: 8px;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
   }
   section.title {
-    background: linear-gradient(135deg, #0f172a 0%, #164e63 100%);
-    color: #f8fafc;
+    background: #eef6fb;
+    color: var(--ink);
+    padding: 70px 68px;
   }
-  section.title h1 { color: #ffffff; font-size: 39px; }
-  section.title strong { color: #bae6fd; }
-  .subtitle { font-size: 24px; line-height: 1.35; margin-top: 26px; }
-  .note { font-size: 18px; color: #475569; margin-top: 10px; }
+  section.title h1 { color: var(--blue-dark); font-size: 43px; max-width: 820px; }
+  section.title h1::after {
+    content: "";
+    display: block;
+    width: 130px;
+    height: 5px;
+    margin-top: 24px;
+    background: linear-gradient(90deg, #6fa8cc, #9fc8c4);
+    border-radius: 5px;
+  }
+  section.title strong { color: var(--blue); }
+  section.title::after { color: #91a3b7; }
+  .subtitle { font-size: 24px; line-height: 1.42; margin-top: 30px; color: #45566d; }
+  .note { font-size: 19px; color: var(--muted); margin-top: 12px; }
   .two { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; }
   .box {
-    background: #ffffff;
-    border: 1px solid #dbe5ef;
+    background: var(--paper);
+    border: 1px solid #d7e1ec;
     border-radius: 8px;
-    padding: 16px 18px;
+    padding: 17px 20px;
+    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.07);
   }
   .metric {
     font-size: 32px;
-    color: #0f5f9c;
+    color: var(--blue);
     font-weight: 700;
   }
   .warning {
-    background: #fff7ed;
-    border-left: 5px solid #ea580c;
-    padding: 13px 16px;
-    margin-top: 14px;
+    background: var(--teal-soft);
+    border-left: 6px solid var(--teal);
+    padding: 14px 18px;
+    margin-top: 16px;
+    box-shadow: 0 8px 18px rgba(93, 155, 150, 0.12);
   }
+  section.compact table { font-size: 18px; }
+  section.evidence table { width: 40%; margin-top: 10px; font-size: 17px; }
+  section.evidence th, section.evidence td { padding: 5px 8px; }
+  section.evidence img { max-height: 275px; }
+  section.evidence .note { font-size: 18px; margin-top: 9px; }
+  section.wide-figure img { max-height: 320px; }
+  section.final ol { font-size: 22px; }
+  section.final p { font-size: 22px; }
 ---
 
 <!-- _class: title -->
@@ -136,6 +202,8 @@ style: |
 
 ---
 
+<!-- _class: compact -->
+
 ## 4. Почему BTNet
 
 | Критерий | CRR | Обычная нейросеть | BTNet |
@@ -149,6 +217,8 @@ style: |
 
 ---
 
+<!-- _class: compact -->
+
 ## 5. Нейросетевая запись CRR
 
 | Элемент CRR | Элемент BTNet | Финансовый смысл |
@@ -161,6 +231,8 @@ style: |
 <div class="note">Для американского опциона maxout является нейросетевой записью рекурсии Беллмана.</div>
 
 ---
+
+<!-- _class: wide-figure -->
 
 ## 6. Архитектура BTNetAmerican
 
@@ -199,6 +271,8 @@ style: |
 
 ---
 
+<!-- _class: evidence -->
+
 ## 8. Прайсинг American put
 
 ![w:780px](../../figures/fig_3_2_price_quantlib_errors.png)
@@ -209,6 +283,8 @@ style: |
 | Transferred W | 4.38·10⁻⁴ | 6.81·10⁻⁴ | 1.71·10⁻³ |
 
 ---
+
+<!-- _class: evidence wide-figure -->
 
 ## 9. Перенос весов: цена зависит от режима
 
@@ -224,6 +300,8 @@ style: |
 <div class="note">Перенос может локально улучшить цену, но не является надежной процедурой инициализации.</div>
 
 ---
+
+<!-- _class: compact -->
 
 ## 10. Почему перенос весов нестабилен
 
@@ -254,6 +332,8 @@ Gamma = 0 почти всюду не является ошибкой кода: �
 
 ---
 
+<!-- _class: final -->
+
 ## 12. Выводы
 
 1. Цель работы достигнута: BTNet реализована и верифицирована для American put
@@ -263,4 +343,3 @@ Gamma = 0 почти всюду не является ошибкой кода: �
 5. Для полноценного риск-менеджмента требуется модификация архитектуры из-за Gamma
 
 **Перспективы:** гладкие max/ReLU, анализ глубины `n`, локальная волатильность, экзотические опционы.
-
