@@ -10,129 +10,101 @@ Good afternoon, dear members of the examination committee.
 
 My name is Artem Petrov. Today I am going to present my final qualifying work. The topic of my work is "Pricing American Options with a Neural Network Based on a Binomial Tree".
 
-The work is connected with option pricing, numerical methods, and neural networks. The main object of the work is option pricing methods. The subject is the BTNet architecture for pricing an American put option and for computing its sensitivities to market parameters.
+The main idea is to use a neural-network representation of the binomial tree method for pricing American put options.
 
 ## The 2nd slide
 
-First, I would like to describe the problem.
+First, I will explain what an American option is.
 
-Options are important financial instruments. They are used for hedging, speculation, and portfolio management. A put option gives the right to sell an asset at a fixed strike price.
+A put option gives the right to sell an asset at a fixed strike price. A European option can be exercised only at maturity. An American option can be exercised earlier, before maturity.
 
-An American put option is more difficult than a European option because it can be exercised before maturity. At each moment the holder has to choose between two actions: to exercise the option now or to continue holding it. Therefore, the pricing problem becomes an optimal stopping problem.
-
-For an American put option there is no simple closed analytical formula in the general case. For this reason, numerical methods are used. In my work, QuantLib CRR with 500 steps is used as a practical numerical reference, not as an exact analytical solution.
+At each moment the holder decides whether to exercise the option now or continue holding it. Because of this, American option pricing is an optimal stopping problem.
 
 ## The 3rd slide
 
-The goal of my work is to implement and numerically verify BTNet for pricing American put options and to analyze option Greeks using automatic differentiation.
+For many European options, we can use the Black-Scholes formula. But for an American put option there is no simple closed formula in the general case.
 
-To achieve this goal, I solved several tasks.
+So we need numerical methods. One classical method is the Cox-Ross-Rubinstein binomial tree model, or CRR model.
 
-First, I studied the Black-Scholes model, the Cox-Ross-Rubinstein binomial model, and the BTNet equivalence.
-
-Second, I implemented the software package `btnn_bs` in Python and PyTorch.
-
-Third, I verified European and American put prices against analytical formulas and QuantLib.
-
-Fourth, I computed Delta, Gamma, Vega, and Theta using automatic differentiation.
-
-And finally, I studied the transfer of weights from the European BTNet model to the American BTNet model.
+The task of my final work is to implement models of this architecture, train the European model, and verify the American model for put option pricing.
 
 ## The 4th slide
 
-It is important to correctly define my own contribution.
+This slide shows the idea of a binomial tree.
 
-I do not claim that I created a new BTNet theory. The theoretical basis of BTNet was proposed by Sergey Shorokhov. In that approach, the backward induction of a binomial tree is represented as a forward pass of a special neural network.
+At each time step the price of the underlying asset can move up or down. The up movement has multiplier `u`, and the down movement has multiplier `d`.
 
-My contribution is practical and experimental. I implemented the package `btnn_bs`, applied BTNetAmerican to American put option pricing, performed numerical verification against QuantLib CRR, computed and analyzed Greeks through automatic differentiation, and performed the weight transfer experiment.
+At the final nodes we calculate the payoff. Then we move backwards through the tree.
 
-An important separate result of the work is the identification of the Gamma limitation in the piecewise-linear BTNet architecture.
+For an American option, at each node we compare two values: the continuation value and the immediate exercise value.
 
 ## The 5th slide
 
-Now I will explain why BTNet is useful in this work.
+Here are the main CRR formulas.
 
-The classical CRR model is transparent and has a clear financial interpretation. The weights are connected with the risk-neutral measure. The early exercise feature of an American option is also naturally represented by the maximum between continuation and exercise.
+The time step is `dt = T / n`. The up and down multipliers are calculated from volatility. The risk-neutral probability `p` is used to compute the discounted expected future value.
 
-An ordinary neural network can be fast after training, but its weights are usually difficult to interpret. BTNet is different. It is not just a black-box neural network. It represents the CRR backward induction as a neural network with interpretable layers.
+For an American put option, the value at a node is the maximum of two numbers. The first number is the immediate exercise value, `K - S`. The second number is the continuation value from the next layer of the tree.
 
-This means that BTNet keeps the financial logic of the binomial tree and also allows us to use tools from neural network libraries, including automatic differentiation.
+This maximum is the mathematical reason why American option pricing is connected with optimal stopping.
 
 ## The 6th slide
 
-This slide shows the correspondence between the CRR model and BTNet.
+Now I introduce BTNet.
 
-The terminal payoff `max(K - S, 0)` is represented by the first layer. The discounted risk-neutral expectation is represented by a convolution-like layer with the filter `W`. The backward induction is represented by a sequence of layers.
+BTNet means Binomial Tree Neural Network. It is an architecture whose forward pass repeats the backward induction of the CRR tree.
 
-For the American option, the most important part is early exercise. It is represented by the maxout layer. This layer compares the continuation value with the immediate exercise value and chooses the maximum. In other words, maxout is a neural-network form of the Bellman recursion for the optimal stopping problem.
+The terminal payoff is the first layer. The discounted expectation is represented by a linear filter `W`. The backward steps are represented by a sequence of layers.
+
+For the American option, early exercise is represented by a maxout operation. This operation chooses the maximum between continuation and exercise.
 
 ## The 7th slide
 
-This slide shows the architecture of BTNetAmerican.
+In the practical part, I implemented the package `btnn_bs` in Python and PyTorch.
 
-The main idea is that each layer corresponds to one step of backward induction in the binomial tree. The network starts from terminal payoffs and then moves step by step to the initial node.
+It contains two main models. `BTNetEuropean` is used for European put options. `BTNetAmerican` is used for American put options and includes maxout layers.
 
-The American feature is implemented through maxout layers. At each node, the model chooses whether it is better to continue or to exercise. Because of this, the architecture has a direct financial interpretation.
+I also implemented tools for verification and for computing sensitivities: Delta, Gamma, Vega, and Theta.
 
 ## The 8th slide
 
-Now I will describe the experimental setup.
+This slide shows the key feature of the BTNetAmerican architecture.
 
-The base experiment uses the following parameters: initial asset price `S0 = 0.5`, maturity `T = 1`, risk-free rate `r = 0.05`, volatility `sigma = 0.25`, and tree depth `n = 9`. Strike prices are taken on the grid from 0.25 to 0.75.
+The number of values decreases after each layer, like in a binomial tree. After all steps only one number remains: the current option price.
 
-For the European put option, I used the Black-Scholes formula and QuantLib as references. For the American put option, I used QuantLib CRR with 500 steps as a numerical benchmark.
+Each maxout layer has two branches. One branch calculates the continuation value, and the other branch calculates the immediate exercise value. Then maxout chooses the larger value in each node.
 
-The quality metrics are MAE, RMSE, and maximum absolute error. For Greeks, I compared automatic differentiation with analytical formulas for the European option and with central finite differences for the American option.
+So this architecture is not just a black box. Its structure follows the financial algorithm.
 
 ## The 9th slide
 
-The first main result is the pricing accuracy of the American put option.
+Now I will discuss pricing accuracy.
 
-With analytical CRR initialization, BTNetAmerican gives a mean absolute error of `2.84e-4`, RMSE of `4.06e-4`, and maximum absolute error of `1.10e-3` relative to QuantLib CRR with 500 steps.
+For verification, I used the base parameters `S0 = 0.5`, `T = 1`, `r = 0.05`, `sigma = 0.25`, and tree depth `n = 9`. For American options, QuantLib CRR with 500 steps was used as a numerical reference.
 
-These values show that the implementation is correct and that even the compact tree with `n = 9` gives a close approximation to a deeper numerical benchmark.
+With analytical CRR initialization, the mean absolute error was `2.84e-4`, RMSE was `4.06e-4`, and the maximum error was `1.10e-3`.
 
-With transferred weights, the result in the base scenario becomes worse. The MAE increases to `4.38e-4`, the RMSE increases to `6.81e-4`, and the maximum error increases to `1.71e-3`.
+With transferred weights from the European model, the errors became worse in the base scenario. This shows that analytical CRR initialization is more reliable.
 
 ## The 10th slide
 
-The second main result is connected with the transfer of weights from the European model to the American model.
+I also studied two important effects.
 
-The initial hypothesis was that weights trained on European Black-Scholes prices could be useful for the American architecture. But the experiments show that this transfer is not stable.
+First, I tested transfer of weights from `BTNetEuropean` to `BTNetAmerican`. The result is not stable. In high volatility the error becomes much worse, so weight transfer should be treated only as a heuristic.
 
-At low volatility, the two initializations are almost the same. At `sigma = 0.60`, transferred weights slightly reduce the price error. But at high volatility, `sigma = 0.90`, the transferred weights become much worse.
+Second, I computed sensitivities using automatic differentiation. The important limitation is Gamma. It is zero almost everywhere because ReLU and maxout are piecewise-linear operations.
 
-Therefore, weight transfer should be treated as an unstable heuristic, not as a reliable initialization method for the American model.
+This is an important negative result. The current architecture is useful for reproducible pricing experiments, but it is not suitable as a full risk-management model if reliable Gamma is required.
 
 ## The 11th slide
 
-This slide explains why the transfer of weights is unstable.
+To conclude, I will summarize what was done in the work.
 
-With analytical initialization, the filter `W` has a clear financial meaning. It represents discounted risk-neutral expectation. In the base scenario, the analytical weights are approximately `0.4847` and `0.5097`.
+I implemented the package `btnn_bs`. I built `BTNetEuropean` and `BTNetAmerican`. I trained the European model and verified the American model. I checked prices against Black-Scholes and QuantLib CRR with 500 steps. I also performed the weight transfer experiment.
 
-After transfer from the European model, the weights become approximately `0.4889` and `0.5063`. The numerical difference looks small, but it changes the continuation value in the American recursion.
+The main conclusions are the following.
 
-For a European option, such a shift can help approximate the Black-Scholes price. But for an American option, it changes the comparison between continuation and immediate exercise. Also, for Vega and Theta, a fixed transferred filter loses part of the dependence on market parameters. This makes the transferred model less reliable for risk analysis.
-
-## The 12th slide
-
-The third important result concerns Greeks.
-
-In the work, Delta, Gamma, Vega, and Theta were computed using automatic differentiation. For the American option, the results were checked by finite differences.
-
-The main limitation is connected with Gamma. In the implemented BTNet architecture, ReLU and maxout operations are piecewise-linear. Therefore, the option price is also piecewise-linear as a function of the input parameters. Inside each linear region, the second derivative is zero. At breakpoints, the classical second derivative is not defined.
-
-For this reason, Gamma computed by autograd is equal to zero almost everywhere. This is not a programming error. It is a mathematical consequence of the architecture.
-
-This is an important negative result of the work. It means that the current BTNet architecture can be used for reproducible pricing and for analysis of some local sensitivities, but it should not be used as a full risk-management model when reliable Gamma and delta-gamma hedging are required.
-
-## The 13th slide
-
-To conclude, the goal of the work was achieved. I implemented and verified BTNet for American put option pricing and analyzed Greeks through automatic differentiation.
-
-Analytical CRR initialization gave good pricing accuracy: MAE equals 2.84 times 10 to the minus 4 relative to QuantLib CRR with 500 steps. The transfer of weights from European to American BTNet was shown to be unstable and should be treated only as a heuristic.
-
-The main limitation of the architecture is zero Gamma almost everywhere. Therefore, future work should include smooth approximations of ReLU and maxout, study of the tree depth, and extensions to more complex option models.
+Analytical CRR initialization gives accurate and interpretable prices. Weight transfer is unstable. The Gamma problem shows that the architecture should be improved with smooth operations for full risk management.
 
 Thank you for your attention. I am ready to answer your questions.
 
