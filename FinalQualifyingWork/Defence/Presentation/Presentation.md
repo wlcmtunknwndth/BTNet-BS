@@ -129,6 +129,34 @@ style: |
   section.figure img { max-height: 430px; }
   section.evidence img { max-height: 280px; }
   section.evidence table { font-size: 18px; }
+  .final-grid {
+    display: grid;
+    grid-template-columns: 1fr 190px;
+    gap: 28px;
+    align-items: start;
+  }
+  .qr-card {
+    background: var(--paper);
+    border: 1px solid #d7e1ec;
+    border-radius: 8px;
+    padding: 14px;
+    text-align: center;
+    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.07);
+  }
+  .qr-card img {
+    width: 132px;
+    max-height: 132px;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .qr-card .label {
+    font-size: 15px;
+    line-height: 1.2;
+    color: var(--muted);
+    margin-top: 8px;
+  }
 ---
 
 <!-- _class: title -->
@@ -292,6 +320,9 @@ Delta, Gamma, Vega, Theta — чувствительности цены к ры�
 
 ## 10. Что сделано и выводы
 
+<div class="final-grid">
+<div>
+
 **В работе выполнено:**
 
 1. Реализован пакет `btnn_bs` на Python/PyTorch
@@ -301,3 +332,13 @@ Delta, Gamma, Vega, Theta — чувствительности цены к ры�
 5. Проведен эксперимент переноса весов European → American
 
 **Основные выводы:** аналитическая CRR-инициализация дает точную и интерпретируемую цену, перенос весов нестабилен, а Gamma требует гладкой модификации архитектуры.
+
+</div>
+<div class="qr-card">
+
+![QR код репозитория](../../figures/github_repo_qr.png)
+
+<div class="label">GitHub<br>BTNet-BS</div>
+
+</div>
+</div>
